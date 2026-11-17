@@ -1,0 +1,35 @@
+{
+  "name": "spark-lens",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "demo": "node scripts/demo-and-verify.mjs",
+    "sample": "python3 scripts/generate_sample_log.py"
+  },
+  "dependencies": {
+    "pako": "^3.0.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/pako": "^2.0.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "oxlint": "^1.90.0",
+    "playwright": "^1.65.1",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  },
+  "description": "SparkLens — client-side Spark event-log visualizer: stage DAG, skew detection, and plain-language findings. 100% in-browser.",
+  "license": "MIT"
+}
