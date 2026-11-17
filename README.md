@@ -1,4 +1,4 @@
-# 🔍 SparkLens
+# SparkLens
 
 **See what your Spark job actually did — from its event log, in seconds.**
 
@@ -6,7 +6,7 @@ Drop in a Spark event log and get the stage DAG, per-stage metrics, skew
 detection, and plain-language findings. No Spark History Server, no cluster
 access, no setup.
 
-**🔒 100% client-side.** Your event log is parsed entirely in the browser and
+**100% client-side.** Your event log is parsed entirely in the browser and
 never leaves your machine. There is no backend and nothing is uploaded.
 
 ## Features
@@ -93,7 +93,8 @@ repo's test resources, Apache 2.0) — see `tests/fixtures/README.md`.
 ## Tech
 
 Vite + React 19 + TypeScript, no backend. DAG and histograms are hand-rolled
-SVG; gzip decompression uses [pako](https://github.com/nodeca/pako).
+SVG; gzip decompression uses [pako](https://github.com/nodeca/pako). Type is
+Geist Sans + JetBrains Mono, self-hosted via Fontsource.
 
 ## License
 

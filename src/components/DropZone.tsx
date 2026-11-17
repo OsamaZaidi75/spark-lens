@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { ArrowRightIcon, HeroMotif, UploadIcon } from "./icons";
 
 interface DropZoneProps {
   onFile: (file: File) => void;
@@ -24,6 +25,9 @@ export default function DropZone({
   return (
     <div>
       <div className="hero">
+        <div className="hero-motif">
+          <HeroMotif />
+        </div>
         <h2>See what your Spark job actually did</h2>
         <p>
           Drop in a Spark event log and get the stage DAG, per-stage metrics,
@@ -32,37 +36,41 @@ export default function DropZone({
         </p>
       </div>
 
-      <div
-        className={`dropzone${dragging ? " dragging" : ""}`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
-        }}
-        aria-label="Drop a Spark event log file here, or click to browse"
-      >
-        <div className="dropzone-icon">📄</div>
-        <h3>Drop your Spark event log here</h3>
-        <p>or click to browse your files</p>
-        <p className="formats">.json &nbsp;·&nbsp; .json.gz</p>
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".json,.json.gz,.gz,application/json,application/gzip"
-          style={{ display: "none" }}
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) onFile(f);
-            e.target.value = "";
+      <div className="dropzone-shell">
+        <div
+          className={`dropzone${dragging ? " dragging" : ""}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
           }}
-        />
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => inputRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
+          }}
+          aria-label="Drop a Spark event log file here, or click to browse"
+        >
+          <div className="dropzone-icon">
+            <UploadIcon />
+          </div>
+          <h3>Drop your Spark event log here</h3>
+          <p>or click to browse your files</p>
+          <p className="formats">.json &nbsp;·&nbsp; .json.gz</p>
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".json,.json.gz,.gz,application/json,application/gzip"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onFile(f);
+              e.target.value = "";
+            }}
+          />
+        </div>
       </div>
 
       <div className="hero-actions">
@@ -71,7 +79,10 @@ export default function DropZone({
           onClick={onLoadSample}
           disabled={loading}
         >
-          {loading ? "Loading…" : "⚡ Load sample log"}
+          {loading ? "Loading…" : "Load sample log"}
+          <span className="btn-icon-circle">
+            <ArrowRightIcon size={13} color="#1a1205" />
+          </span>
         </button>
       </div>
       <p className="sample-note">

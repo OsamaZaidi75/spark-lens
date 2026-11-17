@@ -1,15 +1,10 @@
 import type { Finding } from "../lib/types";
+import { ArrowRightIcon, CheckIcon } from "./icons";
 
 interface FindingsPanelProps {
   findings: Finding[];
   onSelectStage: (stageId: number) => void;
 }
-
-const ICON: Record<Finding["severity"], string> = {
-  critical: "🔴",
-  warning: "🟡",
-  info: "🔵",
-};
 
 export default function FindingsPanel({
   findings,
@@ -18,7 +13,8 @@ export default function FindingsPanel({
   if (findings.length === 0) {
     return (
       <p className="no-findings">
-        ✅ No problems detected — no skewed stages, no spill, no failed tasks,
+        <CheckIcon />
+        No problems detected — no skewed stages, no spill, no failed tasks,
         and shuffle volumes look reasonable.
       </p>
     );
@@ -28,7 +24,9 @@ export default function FindingsPanel({
     <div>
       {findings.map((f) => (
         <div key={f.id} className={`finding ${f.severity}`}>
-          <div className="finding-icon">{ICON[f.severity]}</div>
+          <div className="finding-dot">
+            <span />
+          </div>
           <div className="finding-body">
             <h4>{f.title}</h4>
             <p>{f.detail}</p>
@@ -37,7 +35,8 @@ export default function FindingsPanel({
                 className="finding-link"
                 onClick={() => onSelectStage(f.stageId!)}
               >
-                Inspect stage {f.stageId} ↓
+                Inspect stage {f.stageId}
+                <ArrowRightIcon size={12} />
               </button>
             )}
           </div>

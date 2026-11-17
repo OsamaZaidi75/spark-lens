@@ -4,6 +4,7 @@ import StageDag from "./components/StageDag";
 import StageTable from "./components/StageTable";
 import StageDetail from "./components/StageDetail";
 import FindingsPanel from "./components/FindingsPanel";
+import { FileIcon, LensMark } from "./components/icons";
 import { parseEventLog } from "./lib/parser";
 import { computeFindings } from "./lib/findings";
 import { readLogFile } from "./lib/loadFile";
@@ -105,30 +106,40 @@ export default function App() {
     setError(null);
   };
 
-  const totalShuffle = loaded
-    ? loaded.log.stages.reduce(
-        (s, st) => s + st.totalShuffleReadBytes + st.totalShuffleWriteBytes,
-        0,
-      )
+  const totalShuffleRead = loaded
+    ? loaded.log.stages.reduce((s, st) => s + st.totalShuffleReadBytes, 0)
+    : 0;
+  const totalShuffleWrite = loaded
+    ? loaded.log.stages.reduce((s, st) => s + st.totalShuffleWriteBytes, 0)
     : 0;
   const totalSpill = loaded
     ? loaded.log.stages.reduce((s, st) => s + st.totalDiskBytesSpilled, 0)
     : 0;
+  const failedJobs = loaded
+    ? loaded.log.jobs.filter((j) => j.succeeded === false).length
+    : 0;
+  const longestStage = loaded
+    ? loaded.log.stages.reduce(
+        (a, b) => ((b.durationMs ?? 0) > (a.durationMs ?? 0) ? b : a),
+        loaded.log.stages[0],
+      )
+    : null;
 
   return (
-    <div className="app">
+    <div className={loaded ? "app app-loaded" : "app"}>
       <header className="app-header">
         <div className="brand">
-          <div className="brand-mark">🔍</div>
+          <div className="brand-mark">
+            <LensMark />
+          </div>
           <div>
-            <h1>
-              Spark<span>Lens</span>
-            </h1>
+            <h1>SparkLens</h1>
             <p>Understand any Spark job from its event log</p>
           </div>
         </div>
-        <div className="privacy-badge">
-          🔒 100% client-side — your log never leaves this browser
+        <div className="privacy-note">
+          <span className="dot" />
+          100% client-side — your log never leaves this browser
         </div>
       </header>
 
@@ -146,7 +157,10 @@ export default function App() {
       {loaded && (
         <>
           <div className="toolbar">
-            <span className="file-chip">📄 {loaded.sourceName}</span>
+            <span className="file-chip">
+              <FileIcon />
+              {loaded.sourceName}
+            </span>
             <button className="btn btn-ghost btn-sm" onClick={reset}>
               Load a different log
             </button>
@@ -156,54 +170,69 @@ export default function App() {
             <div className="summary-title">
               <h2>{loaded.log.app.appName ?? "Spark application"}</h2>
               {loaded.isSample && (
-                <span className="sample-tag">Synthetic sample data</span>
-              )}
-              {loaded.log.app.appId && (
-                <span className="app-id">{loaded.log.app.appId}</span>
+                <span className="sample-tag">
+                  <span className="dot" />
+                  Synthetic sample data
+                </span>
               )}
             </div>
+            {loaded.log.app.appId && (
+              <span className="app-id">{loaded.log.app.appId}</span>
+            )}
           </div>
 
-          <div className="stat-cards">
-            <div className="stat-card">
+          <div className="stat-strip">
+            <div className="stat-item">
               <div className="label">Total duration</div>
               <div className="value">
                 {formatMs(loaded.log.totalDurationMs)}
               </div>
               <div className="sub">wall-clock</div>
             </div>
-            <div className="stat-card">
+            <div className="stat-item">
               <div className="label">Jobs</div>
               <div className="value">{formatNumber(loaded.log.jobs.length)}</div>
-              <div className="sub">
-                {loaded.log.jobs.filter((j) => j.succeeded === false).length >
-                0
-                  ? "some failed"
+              <div className={failedJobs > 0 ? "sub bad" : "sub"}>
+                {failedJobs > 0
+                  ? `${failedJobs} failed`
                   : "all succeeded"}
               </div>
             </div>
-            <div className="stat-card">
+            <div className="stat-item">
               <div className="label">Stages</div>
               <div className="value">
                 {formatNumber(loaded.log.stages.length)}
               </div>
-              <div className="sub">click any stage to inspect</div>
+              <div className="sub">
+                {longestStage && (longestStage.durationMs ?? 0) > 0
+                  ? `longest · Stage ${longestStage.stageId} · ${formatMs(longestStage.durationMs)}`
+                  : `${formatNumber(loaded.log.jobs.length)} jobs`}
+              </div>
             </div>
-            <div className="stat-card">
+            <div className="stat-item">
               <div className="label">Tasks</div>
               <div className="value">{formatNumber(loaded.log.totalTasks)}</div>
-              <div className="sub">
+              <div
+                className={
+                  loaded.log.totalFailedTasks > 0 ? "sub bad" : "sub"
+                }
+              >
                 {loaded.log.totalFailedTasks > 0
                   ? `${loaded.log.totalFailedTasks} failed`
                   : "none failed"}
               </div>
             </div>
-            <div className="stat-card">
+            <div className="stat-item">
               <div className="label">Shuffle moved</div>
-              <div className="value">{formatBytes(totalShuffle)}</div>
-              <div className="sub">read + write</div>
+              <div className="value">
+                {formatBytes(totalShuffleRead + totalShuffleWrite)}
+              </div>
+              <div className="sub">
+                {formatBytes(totalShuffleRead)} read ·{" "}
+                {formatBytes(totalShuffleWrite)} written
+              </div>
             </div>
-            <div className="stat-card">
+            <div className="stat-item">
               <div className="label">Disk spill</div>
               <div className="value">{formatBytes(totalSpill)}</div>
               <div className="sub">
@@ -213,7 +242,13 @@ export default function App() {
           </div>
 
           <section className="section">
-            <h3>🔎 Findings</h3>
+            <div className="section-head">
+              <h3>Findings</h3>
+              <span className="section-meta">
+                {findings.length}{" "}
+                {findings.length === 1 ? "finding" : "findings"}
+              </span>
+            </div>
             <p className="hint">
               What stands out in this run — skew, spill, shuffle, GC, failures.
             </p>
@@ -223,8 +258,13 @@ export default function App() {
             />
           </section>
 
-          <section className="section">
-            <h3>🗺️ Stage DAG</h3>
+          <section className="section section-dag">
+            <div className="section-head">
+              <h3>Stage DAG</h3>
+              <span className="section-meta">
+                {formatNumber(loaded.log.stages.length)} stages
+              </span>
+            </div>
             <p className="hint">
               Stages and their dependencies, coloured by health. Click a stage
               to inspect it.
@@ -237,7 +277,12 @@ export default function App() {
           </section>
 
           <section className="section">
-            <h3>📊 Stage metrics</h3>
+            <div className="section-head">
+              <h3>Stage metrics</h3>
+              <span className="section-meta">
+                {formatNumber(loaded.log.stages.length)} rows
+              </span>
+            </div>
             <p className="hint">
               One row per stage. Skew = slowest task ÷ median task.
             </p>
@@ -250,9 +295,14 @@ export default function App() {
 
           {selectedStage && (
             <section className="section" ref={detailRef}>
-              <h3>
-                Stage {selectedStage.stageId} — {selectedStage.name}
-              </h3>
+              <div className="section-head">
+                <h3>
+                  Stage {selectedStage.stageId} — {selectedStage.name}
+                </h3>
+                <span className="section-meta">
+                  {formatNumber(selectedStage.completedTasks)} tasks
+                </span>
+              </div>
               <p className="hint">
                 Per-task breakdown for the selected stage.
               </p>
@@ -260,13 +310,7 @@ export default function App() {
             </section>
           )}
 
-          <p
-            style={{
-              fontSize: 12,
-              color: "var(--text-dim)",
-              marginTop: 8,
-            }}
-          >
+          <p className="parse-note">
             Parsed {formatNumber(loaded.log.linesProcessed)} log lines
             {loaded.log.malformedLines > 0 &&
               ` (${loaded.log.malformedLines} malformed lines skipped)`}

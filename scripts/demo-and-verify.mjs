@@ -21,6 +21,10 @@ mkdirSync(OUT_DIR, { recursive: true });
 
 const BASE_URL = process.argv[2] || "http://localhost:4173";
 const NEEDS_SERVER = BASE_URL.includes("localhost");
+// DEMO_TAG=v2 writes 01-hero-v2.png etc. and sparklens-demo-v2.mp4,
+// leaving the v1 assets untouched.
+const TAG = process.env.DEMO_TAG ? `-${process.env.DEMO_TAG}` : "";
+const shot = (name) => path.join(OUT_DIR, `${name}${TAG}.png`);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -68,7 +72,7 @@ async function main() {
     const sampleBtn = page.getByRole("button", { name: /Load sample log/i });
     if (!(await sampleBtn.isVisible())) fail("Load sample button not visible");
     console.log("✓ Hero + Load sample button visible");
-    await page.screenshot({ path: path.join(OUT_DIR, "01-hero.png") });
+    await page.screenshot({ path: shot("01-hero") });
     await sleep(2000);
 
     // 2. Load the sample log
@@ -81,8 +85,8 @@ async function main() {
 
     // 3. Assertions on the dashboard
     const checks = [
-      ["summary shows 6 stages", page.locator(".stat-card", { hasText: "Stages" })],
-      ["summary shows 2 jobs", page.locator(".stat-card", { hasText: "Jobs" })],
+      ["summary shows 6 stages", page.locator(".stat-item", { hasText: "Stages" })],
+      ["summary shows 2 jobs", page.locator(".stat-item", { hasText: "Jobs" })],
       ["skew finding present", page.getByText(/Skewed stage/i).first()],
       ["spill finding present", page.getByText(/Disk spill/i).first()],
       ["shuffle finding present", page.getByText(/Shuffle-heavy/i).first()],
@@ -101,7 +105,7 @@ async function main() {
     if (nodeCount !== 6) fail(`expected 6 DAG nodes, got ${nodeCount}`);
     console.log(`✓ 6 stage rows and 6 DAG nodes`);
 
-    await page.screenshot({ path: path.join(OUT_DIR, "02-dashboard.png") });
+    await page.screenshot({ path: shot("02-dashboard") });
     await sleep(1500);
 
     // 4. Scroll through findings → DAG (pan the DAG to show the full chain)
@@ -119,7 +123,7 @@ async function main() {
       if (el) el.scrollTo({ left: 0, behavior: "smooth" });
     });
     await sleep(1200);
-    await page.screenshot({ path: path.join(OUT_DIR, "03-dag.png") });
+    await page.screenshot({ path: shot("03-dag") });
 
     // 5. Click the skewed stage (Stage 2) in the DAG
     const stage2 = page.locator(".dag-node", { hasText: "Stage 2" });
@@ -131,7 +135,7 @@ async function main() {
     if (!(await detail.isVisible())) fail("stage 2 detail not visible after DAG click");
     const skewText = await page.locator(".detail-metric", { hasText: "Skew" }).innerText();
     console.log(`✓ Stage 2 detail open — ${skewText.replace(/\n/g, " ")}`);
-    await page.screenshot({ path: path.join(OUT_DIR, "04-stage-detail.png") });
+    await page.screenshot({ path: shot("04-stage-detail") });
     await sleep(1500);
 
     // 6. Scroll to the metrics table, then back to top
@@ -154,14 +158,25 @@ async function main() {
     if (server) server.kill();
   }
 
-  // Report the video file(s)
-  const { readdirSync } = await import("node:fs");
-  const videos = readdirSync(OUT_DIR).filter((f) => f.endsWith(".webm"));
+  // Report the video file(s), converting the newest .webm to mp4.
+  const { readdirSync, statSync } = await import("node:fs");
+  const { execSync } = await import("node:child_process");
+  const videos = readdirSync(OUT_DIR)
+    .filter((f) => f.endsWith(".webm"))
+    .sort(
+      (a, b) =>
+        statSync(path.join(OUT_DIR, b)).mtimeMs -
+        statSync(path.join(OUT_DIR, a)).mtimeMs,
+    );
   console.log(`\nVideo files in demo/: ${videos.join(", ") || "none"}`);
-  for (const v of videos) {
-    const { statSync } = await import("node:fs");
-    const sz = statSync(path.join(OUT_DIR, v)).size;
-    console.log(`  ${v} — ${(sz / 1024 / 1024).toFixed(1)} MB`);
+  if (videos.length > 0) {
+    const latest = path.join(OUT_DIR, videos[0]);
+    const mp4 = path.join(OUT_DIR, `sparklens-demo${TAG}.mp4`);
+    execSync(
+      `ffmpeg -y -loglevel error -i ${JSON.stringify(latest)} -c:v libx264 -pix_fmt yuv420p ${JSON.stringify(mp4)}`,
+    );
+    const sz = statSync(mp4).size;
+    console.log(`  → ${path.basename(mp4)} — ${(sz / 1024 / 1024).toFixed(1)} MB`);
   }
 }
 

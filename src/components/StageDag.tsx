@@ -10,10 +10,15 @@ interface StageDagProps {
 }
 
 const NODE_W = 210;
-const NODE_H = 66;
+const NODE_H = 72;
 const GAP_X = 72;
-const GAP_Y = 26;
+const GAP_Y = 28;
 const PAD = 16;
+
+/** Quiet hairline for node borders; severity lives in the dot only. */
+const NODE_STROKE = "rgba(238,240,245,0.14)";
+const NODE_FILL = "#101d33";
+const EDGE = "rgba(163,169,184,0.4)";
 
 type Severity = "critical" | "warning" | "ok";
 
@@ -29,9 +34,9 @@ function severityOf(stage: StageSummary): Severity {
 }
 
 const SEVERITY_COLOR: Record<Severity, string> = {
-  critical: "#f87171",
+  critical: "#e5484d",
   warning: "#f5a524",
-  ok: "#34d399",
+  ok: "#4cc38a",
 };
 
 interface LayoutNode {
@@ -144,7 +149,7 @@ export default function StageDag({
             markerHeight="7"
             orient="auto-start-reverse"
           >
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+            <path d="M 0 0 L 10 5 L 0 10 z" fill={EDGE} />
           </marker>
         </defs>
 
@@ -153,7 +158,7 @@ export default function StageDag({
             key={e.key}
             d={e.d}
             fill="none"
-            stroke="#64748b"
+            stroke={EDGE}
             strokeWidth={1.5}
             markerEnd="url(#arrow)"
           />
@@ -172,44 +177,54 @@ export default function StageDag({
               <title>
                 {`Stage ${n.stage.stageId}: ${n.stage.name}\n${n.stage.completedTasks} tasks · ${formatMs(n.stage.durationMs)}`}
               </title>
+              {selected && (
+                <rect
+                  className="dag-ring"
+                  x={-3}
+                  y={-3}
+                  width={NODE_W + 6}
+                  height={NODE_H + 6}
+                  rx={13}
+                />
+              )}
               <rect
+                className="node-body"
                 width={NODE_W}
                 height={NODE_H}
                 rx={10}
-                fill="#101d33"
-                stroke={selected ? "#f5a524" : color}
-                strokeWidth={selected ? 2.5 : 1.5}
+                fill={NODE_FILL}
+                stroke={NODE_STROKE}
+                strokeWidth={1.5}
               />
-              <circle cx={16} cy={20} r={5} fill={color} />
+              <circle cx={16} cy={22} r={5} fill={color} />
               <text
                 className="dag-label"
                 x={30}
-                y={25}
+                y={27}
                 fontSize={13}
-                fontWeight={700}
-                fill="#e6edf7"
+                fontWeight={500}
+                fill="#eef0f5"
               >
                 Stage {n.stage.stageId}
               </text>
               <text
                 className="dag-label"
                 x={12}
-                y={45}
-                fontSize={11.5}
-                fill="#93a3bb"
+                y={47}
+                fontSize={12}
+                fill="#a3a9b8"
               >
                 {truncate(n.stage.name, 30)}
               </text>
               <text
-                className="dag-label"
+                className="dag-label dag-meta"
                 x={12}
-                y={60}
+                y={63}
                 fontSize={11}
-                fill="#64748b"
+                fill="#7a8296"
               >
                 {n.stage.completedTasks} tasks ·{" "}
                 {formatMs(n.stage.durationMs)}
-                {isSkewed(n.stage) ? " · ⚠ skewed" : ""}
               </text>
             </g>
           );
@@ -217,7 +232,7 @@ export default function StageDag({
       </svg>
       <div className="legend">
         <span>
-          <span className="dot" style={{ background: "#f87171" }} /> Skewed /
+          <span className="dot" style={{ background: "#e5484d" }} /> Skewed /
           failed tasks
         </span>
         <span>
@@ -225,10 +240,9 @@ export default function StageDag({
           shuffle-heavy
         </span>
         <span>
-          <span className="dot" style={{ background: "#34d399" }} /> Looks
+          <span className="dot" style={{ background: "#4cc38a" }} /> Looks
           healthy
         </span>
-        <span>Click a stage to inspect it below.</span>
       </div>
     </div>
   );

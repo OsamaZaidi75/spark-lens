@@ -103,13 +103,7 @@ export default function StageDetail({ stage }: StageDetailProps) {
           </div>
         </div>
         {stage.parentIds.length > 0 && (
-          <p
-            style={{
-              fontSize: 13,
-              color: "var(--text-muted)",
-              marginTop: 12,
-            }}
-          >
+          <p className="detail-note">
             Depends on stage{stage.parentIds.length > 1 ? "s" : ""}{" "}
             {stage.parentIds.join(", ")}.
           </p>
@@ -117,11 +111,9 @@ export default function StageDetail({ stage }: StageDetailProps) {
       </div>
 
       <div>
-        <h4 style={{ margin: "0 0 8px", fontSize: 14 }}>
-          Task duration distribution
-        </h4>
+        <h4 className="detail-chart-title">Task duration distribution</h4>
         {buckets.length === 0 ? (
-          <p style={{ color: "var(--text-muted)", fontSize: 13 }}>
+          <p className="detail-chart-caption">
             No completed tasks with timing data in this stage.
           </p>
         ) : (
@@ -131,6 +123,14 @@ export default function StageDetail({ stage }: StageDetailProps) {
             role="img"
             aria-label={`Histogram of ${stage.taskDurations.length} task durations`}
           >
+            <line
+              x1={HIST_PAD.left}
+              y1={HIST_PAD.top + chartH}
+              x2={HIST_PAD.left + chartW}
+              y2={HIST_PAD.top + chartH}
+              stroke="rgba(238,240,245,0.16)"
+              strokeWidth={1}
+            />
             {buckets.map((count, i) => {
               const h = (count / peak) * chartH;
               const x = HIST_PAD.left + i * barW;
@@ -148,8 +148,8 @@ export default function StageDetail({ stage }: StageDetailProps) {
                     width={Math.max(barW - 2, 1)}
                     height={h}
                     rx={2}
-                    fill={isTail ? "#f87171" : "#f5a524"}
-                    opacity={count === 0 ? 0 : 0.9}
+                    fill={isTail ? "#e5484d" : "#2c3f5c"}
+                    opacity={count === 0 ? 0 : 1}
                   />
                   {count > 0 && (
                     <text
@@ -164,6 +164,44 @@ export default function StageDetail({ stage }: StageDetailProps) {
                 </g>
               );
             })}
+            {/* Median marker: the amber line the tail is measured against. */}
+            {(() => {
+              const medianX =
+                HIST_PAD.left + (stage.medianTaskMs / max) * chartW;
+              const anchor =
+                medianX < 96
+                  ? "start"
+                  : medianX > HIST_W - 120
+                    ? "end"
+                    : "middle";
+              const labelX =
+                anchor === "start"
+                  ? medianX + 6
+                  : anchor === "end"
+                    ? medianX - 6
+                    : medianX;
+              return (
+                <g>
+                  <line
+                    x1={medianX}
+                    y1={HIST_PAD.top}
+                    x2={medianX}
+                    y2={HIST_PAD.top + chartH}
+                    stroke="#f5a524"
+                    strokeWidth={1}
+                    strokeDasharray="3 3"
+                  />
+                  <text
+                    className="median-label"
+                    x={labelX}
+                    y={HIST_H - 8}
+                    textAnchor={anchor}
+                  >
+                    median {formatMs(stage.medianTaskMs)}
+                  </text>
+                </g>
+              );
+            })()}
             <text
               className="axis-label"
               x={HIST_PAD.left}
@@ -179,20 +217,12 @@ export default function StageDetail({ stage }: StageDetailProps) {
             >
               {formatMs(max)}
             </text>
-            <text
-              className="axis-label"
-              x={HIST_W / 2}
-              y={HIST_H - 8}
-              textAnchor="middle"
-            >
-              task duration →
-            </text>
           </svg>
         )}
-        <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 8 }}>
-          {stage.taskDurations.length} completed tasks. A long right tail (red
-          bars) means a few tasks ran far longer than the rest — the classic
-          sign of skew.
+        <p className="detail-chart-caption">
+          {stage.taskDurations.length} completed tasks. The amber line is the
+          median; red bars are the long tail — a few tasks ran far longer than
+          the rest, the classic sign of skew.
         </p>
       </div>
     </div>

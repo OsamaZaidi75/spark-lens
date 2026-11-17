@@ -16,7 +16,8 @@ interface StageTableProps {
 function statusBadge(stage: StageSummary) {
   if (isSkewed(stage) || stage.failedTasks > 0) {
     return (
-      <span className="badge badge-red">
+      <span className="status status-red">
+        <span className="dot" />
         {stage.failedTasks > 0 ? "Failed tasks" : "Skewed"}
       </span>
     );
@@ -27,12 +28,18 @@ function statusBadge(stage: StageSummary) {
       100 * 1024 * 1024
   ) {
     return (
-      <span className="badge badge-amber">
+      <span className="status status-amber">
+        <span className="dot" />
         {stage.totalDiskBytesSpilled > 0 ? "Spill" : "Shuffle-heavy"}
       </span>
     );
   }
-  return <span className="badge badge-green">OK</span>;
+  return (
+    <span className="status status-green">
+      <span className="dot" />
+      OK
+    </span>
+  );
 }
 
 export default function StageTable({
