@@ -725,13 +725,13 @@ table.stages th {
   color: var(--text-secondary);
   font-weight: 500;
   font-size: 12px;
-  padding: 8px 12px;
+  padding: 8px;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
 table.stages td {
-  padding: 12px;
+  padding: 12px 8px;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
@@ -802,7 +802,7 @@ table.stages th.num {
 }
 
 .stage-name {
-  max-width: 260px;
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 500;

@@ -9,11 +9,11 @@ interface StageDagProps {
   onSelect: (stageId: number) => void;
 }
 
-const NODE_W = 210;
+const NODE_W = 150;
 const NODE_H = 72;
-const GAP_X = 72;
+const GAP_X = 30;
 const GAP_Y = 28;
-const PAD = 16;
+const PAD = 12;
 
 /** Quiet hairline for node borders; severity lives in the dot only. */
 const NODE_STROKE = "rgba(238,240,245,0.14)";
@@ -214,7 +214,7 @@ export default function StageDag({
                 fontSize={12}
                 fill="#a3a9b8"
               >
-                {truncate(n.stage.name, 30)}
+                {truncate(n.stage.name, 20)}
               </text>
               <text
                 className="dag-label dag-meta"

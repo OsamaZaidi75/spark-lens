@@ -53,6 +53,7 @@ export default function StageTable({
         <thead>
           <tr>
             <th>Stage</th>
+            <th>Status</th>
             <th>Name</th>
             <th className="num">Tasks</th>
             <th className="num">Duration</th>
@@ -63,7 +64,6 @@ export default function StageTable({
             <th className="num">Shuffle write</th>
             <th className="num">Spill (disk)</th>
             <th className="num">GC time</th>
-            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -82,6 +82,7 @@ export default function StageTable({
                   </span>
                 )}
               </td>
+              <td>{statusBadge(s)}</td>
               <td>
                 <div className="stage-name" title={s.name}>
                   {s.name}
@@ -104,7 +105,6 @@ export default function StageTable({
               <td className="num">{formatBytes(s.totalShuffleWriteBytes)}</td>
               <td className="num">{formatBytes(s.totalDiskBytesSpilled)}</td>
               <td className="num">{formatMs(s.totalGcTimeMs)}</td>
-              <td>{statusBadge(s)}</td>
             </tr>
           ))}
         </tbody>
